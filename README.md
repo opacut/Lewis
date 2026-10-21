@@ -16,15 +16,15 @@ Oh, and, don't forget to run `rails db:create` and `rails db:migrate`
 
 
 Next steps, in no particular order:
-    1. pagination. Prefer FE pagination, cuz I don't like paginated API responses
-    2. for the scan book feature, only display it if the connection is available - otherwise just a message
-    3. scan redirects to an open edit form (for last check)
-    4. beautify `show`
-    5. open scan as an API endpoint for my automatic python script that can load the books from a series of images
-    6. Grid view - for mobile 
-    7. Edit should diplay the image - should be `show` but editable
-    8. shuffle around the filter toolbar to make it look better
-    9. do the same with sorting
-    10. filter by "books whose location is not home"
-    11. open it up to my local network
-    12. open it up to the internet
+1. pagination. Prefer FE pagination, cuz I don't like paginated API responses
+2. for the scan book feature, only display it if the connection is available - otherwise just a message
+3. scan redirects to an open edit form (for last check)
+4. beautify `show`
+5. open scan as an API endpoint for my automatic python script that can load the books from a series of images
+6. Grid view - for mobile 
+7. Edit should diplay the image - should be `show` but editable
+8. shuffle around the filter toolbar to make it look better
+9. do the same with sorting
+10. filter by "books whose location is not home"
+11. open it up to my local network
+12. open it up to the internet
