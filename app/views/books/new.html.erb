@@ -1,0 +1,21 @@
+<% content_for :title, "New book" %>
+
+<h1>New book</h1>
+
+<div class="photo-scan-section">
+  <h2>Scan from Photo</h2>
+  <%= form_with url: scan_books_path, method: :post, multipart: true do |form| %>
+    <%= form.file_field :photo, accept: "image/*" %>
+    <%= form.submit "Scan Book" %>
+  <% end %>
+</div>
+
+<h2>Or enter manually:</h2>
+
+<%= render "form", book: @book %>
+
+<br>
+
+<div>
+  <%= link_to "Back to books", books_path %>
+</div>

@@ -1,0 +1,10 @@
+<h1>All Tags</h1>
+
+<ul>
+  <% @tags.each do |tag| %>
+    <li>
+      <%= tag.name %> 
+      <%= link_to "Delete", tag_path(tag), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+    </li>
+  <% end %>
+</ul>

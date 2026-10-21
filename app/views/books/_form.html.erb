@@ -1,0 +1,76 @@
+<%= form_with(model: book) do |form| %>
+  <% if book.errors.any? %>
+    <div class="error">
+      <h2><%= pluralize(book.errors.count, "error") %> prohibited this book from being saved:</h2>
+
+      <ul>
+        <% book.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, style: "display: block" %>
+    <%= form.text_field :title %>
+  </div>
+
+  <div>
+    <%= form.label :author, style: "display: block" %>
+    <%= form.text_field :author %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :location, style: "display: block" %>
+    <%= form.text_field :location %>
+  </div>
+
+  <div>
+    <%= form.label :description, style: "display: block" %>
+    <%= form.textarea :description %>
+  </div>
+
+  <div>
+    <%= form.label :image, style: "display: block" %>
+    <%= form.file_field :image %>
+  </div>
+
+  <div>
+    <%= form.label :tag_names, "Tags" %>
+    <%= form.select :tag_names,
+        options_from_collection_for_select(book.tags, :name, :name, book.tag_names),
+        { include_blank: false },
+        { multiple: true, id: "book-tag-select" } %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener("turbo:load", function() {
+    var element = document.getElementById('book-tag-select');
+    if (element && !element.tomselect) {
+      new TomSelect(element, {
+        valueField: 'name',
+        labelField: 'name',
+        searchField: 'name',
+        persist: false,
+        createOnBlur: true,
+        create: true, // This allows pressing ENTER to create a new tag if it doesn't exist!
+        load: function(query, callback) {
+          var url = '/tags.json?q=' + encodeURIComponent(query);
+          fetch(url)
+            .then(response => response.json())
+            .then(json => {
+              callback(json);
+            }).catch(() => {
+              callback();
+            });
+        }
+      });
+    }
+  });
+</script>

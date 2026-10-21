@@ -1,0 +1,243 @@
+<p class="notice"><%= notice %></p>
+
+<% content_for :title, "Books" %>
+
+<h1>Books</h1>
+<%= button_to "Create New book", new_book_path, method: :get %>
+
+<!-- Search Form -->
+<%= form_with url: books_path, method: :get, local: true, class: "search-form" do |form| %>
+  <!-- Preserve the current tag filter if searching while filtered -->
+  <% if params[:tags].present? %>
+    <%= hidden_field_tag :tags, params[:tags] %>
+  <% end %>
+
+  <% if params[:location].present? %>
+    <%= hidden_field_tag :location, params[:location] %>
+  <% end %>
+
+  <% if params[:search_author].present? %>
+    <%= hidden_field_tag :search_author, params[:search_author] %>
+  <% end %>
+  
+  <div>
+    <%= form.text_field :search_name, value: params[:search_name], placeholder: "Search by book name..." %>
+    <%= form.submit "Search" %>
+  </div>
+<% end %>
+
+<%= form_with url: books_path, method: :get, local: true, class: "search-form" do |form| %>
+  <!-- Preserve the current tag filter if searching while filtered -->
+  <% if params[:tags].present? %>
+    <%= hidden_field_tag :tags, params[:tags] %>
+  <% end %>
+
+  <% if params[:location].present? %>
+    <%= hidden_field_tag :location, params[:location] %>
+  <% end %>
+
+  <% if params[:search_name].present? %>
+    <%= hidden_field_tag :search_name, params[:search_name] %>
+  <% end %>
+  
+  <div>
+    <%= form.text_field :search_author, value: params[:search_author], placeholder: "Search by book author..." %>
+    <%= form.submit "Search" %>
+  </div>
+<% end %>
+
+<%= form_with url: books_path, method: :get, local: true, class: "search-form" do |form| %>
+  <!-- Preserve the current tag filter if searching while filtered -->
+  <% if params[:tags].present? %>
+    <%= hidden_field_tag :tags, params[:tags] %>
+  <% end %>
+
+  <% if params[:search_author].present? %>
+    <%= hidden_field_tag :search_author, params[:search_author] %>
+  <% end %>
+
+  <% if params[:search_name].present? %>
+    <%= hidden_field_tag :search_name, params[:search_name] %>
+  <% end %>
+  
+  <div>
+    <%= form.text_field :location, value: params[:location], placeholder: "Search by book location..." %>
+    <%= form.submit "Search" %>
+  </div>
+<% end %>
+
+<% current_tags = Array(params[:tags])
+      .flat_map { |value| value.split(",") }
+      .reject(&:blank?) %>
+
+<% active_filters = {
+  "Book name" => :search_name,
+  "Author" => :search_author,
+  "Location" => :location
+} %>
+
+<% if active_filters.any? { |_, key| params[key].present? } || current_tags.any? %>
+  <div class="active-filters">
+    <strong>Active filters:</strong>
+
+    <% active_filters.each do |label, key| %>
+      <% if params[key].present? %>
+        <span class="active-filter">
+          <%= label %>: <%= params[key] %>
+          <%= link_to "×",
+              books_path(request.query_parameters.except(key.to_s, "page")),
+              class: "remove-filter",
+              aria: { label: "Remove #{label} filter" } %>
+        </span>
+      <% end %>
+    <% end %>
+
+    <% if current_tags.any? %>
+      <% current_tags.each do |tag_name| %>
+        <% remaining_tags = current_tags - [tag_name] %>
+        <% filter_params = request.query_parameters.except("page") %>
+
+        <% if remaining_tags.any? %>
+          <% filter_params["tags"] = remaining_tags.join(",") %>
+        <% else %>
+          <% filter_params.delete("tags") %>
+        <% end %>
+
+        <span class="active-filter">
+          Tag: <%= tag_name %>
+          <%= link_to "×",
+              books_path(filter_params),
+              class: "remove-filter",
+              aria: { label: "Remove #{tag_name} tag filter" } %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Tag Filter Pills -->
+<% if @tags.any? %>
+  <div class="tag-filter-section">
+    <strong>Filter by tags:</strong>
+
+    <div class="tag-filter-tags">
+      <% @tags.each do |tag| %>
+        <% is_active = current_tags.include?(tag.name) %>
+
+        <% new_tags = is_active ? current_tags - [tag.name] : current_tags + [tag.name] %>
+        <% new_tags_param = new_tags.any? ? new_tags.join(",") : nil %>
+
+        <%= link_to tag.name, 
+            books_path(
+              request.query_parameters
+                .merge(tags: new_tags_param)
+                .except(:page)
+            ), 
+            class: "tag-filter-link #{is_active ? 'active' : 'inactive'}" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+
+<% if params[:search_name].present? || 
+      params[:tags].present? || 
+      params[:search_author].present? || 
+      params[:location].present? %>
+
+  <%= link_to "Clear search", books_path %>
+<% end %>
+
+<% sort_options = {
+  "Title" => "title",
+  "Author" => "author",
+  "Location" => "location",
+  "Date added" => "newest"
+} %>
+
+<% current_sort = params[:sort].presence || "title" %>
+<% current_direction = params[:direction].presence || "asc" %>
+
+<div class="book-sorting">
+  <strong>Sort by:</strong>
+
+  <% sort_options.each do |label, value| %>
+    <%= link_to label,
+        books_path(
+          request.query_parameters
+            .merge(sort: value, direction: current_direction)
+            .except(:page)
+        ),
+        class: "sort-link #{current_sort == value ? 'active' : ''}" %>
+  <% end %>
+
+  <%= link_to(
+    current_direction == "asc" ? "↑ Ascending" : "↓ Descending",
+    books_path(
+      request.query_parameters
+        .merge(
+          sort: current_sort,
+          direction: current_direction == "asc" ? "desc" : "asc"
+        )
+        .except(:page)
+    ),
+    class: "sort-direction"
+  ) %>
+</div>
+
+<div id="books">
+  <table class="books-table">
+    <thead>
+      <th class="books-table-header-cell"></th>
+      <th class="books-table-header-cell">Book</th>
+      <th class="books-table-header-cell">Tags</th>
+      <th class="books-table-header-cell">Location</th>
+      <th class="books-table-header-cell">Controls</th>
+    </thead>
+    <tbody>
+      <% @books.each do |book| %>
+        <tr id="<%= dom_id book %>">
+          <td>
+            <%=image_tag book.image.variant(resize_to_limit: [200, 50]) if book.image.attached? %>
+          </td>
+          <td>
+            <div>
+              <strong><%= book.title %></strong><br>
+              <i><%= book.author %></i>
+            </div>
+          </td>
+          <td>
+            <div>
+              <% book.tags.each do |tag| %>
+                <span>
+                  <%= tag.name %>
+                </span>
+              <% end %>
+            </div>
+          </td>
+          <td>
+            <%= book.location %>
+          </td>
+          <td>
+            <details class="dropdown">
+              <summary class="btn btn-primary">Actions </summary>
+              <ul class="dropdown-menu">
+                <li>
+                  <%= button_to "Show", book, method: :get, class: "dropdown-btn" %>
+                </li>
+                <li>
+                  <%= button_to "Edit", edit_book_path(book), method: :get, class: "dropdown-btn" %>
+                </li>
+                <li>
+                  <%= button_to "Destroy", book, method: :delete, class: "dropdown-btn", data: { turbo_confirm: "Are you sure you want to delete this book?" } %>
+                </li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<br>
