@@ -33,3 +33,9 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+
+# Ignore Node dependencies.
+/node_modules
+
+/public/picoruby/
+/app/assets/builds/app.mrb

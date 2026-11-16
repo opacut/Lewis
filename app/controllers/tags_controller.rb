@@ -7,11 +7,20 @@ class TagsController < ApplicationController
       Tag.all
     end
 
-    #render json: @tags.select(:id, :name)
+    respond_to do |format|
+      format.html { render "books/index" }
+      format.json { render json: @tags.select(:id, :name) }
+    end
   end
 
   # GET /tags/1 or /tags/1.json
   def show
+    @tag = Tag.find(params[:id])
+
+    respond_to do |format|
+      format.html { render "books/index" }
+      format.json { render json: { id: @tag.id, name: @tag.name } }
+    end
   end
 
   # DELETE /tags/1 or /tags/1.json

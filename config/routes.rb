@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  namespace :api do
+    get "schema/book", to: "schema#book"
+    get "schema/tag",  to: "schema#tag"
+  end
+
   get "tags/index"
   resources :tags, only: [:index, :show, :destroy]
   resources :books do
@@ -6,17 +11,15 @@ Rails.application.routes.draw do
       post :scan
     end
   end
-  root 'books#index'
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  root "books#index"
+
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # SPA fallback: serve the Funicular host page for direct HTML visits/refreshes
+  # (ignores .json API requests, /api/*, /up, and /rails/* Active Storage URLs)
+  get "*path", to: "books#index", constraints: ->(req) do
+    req.format.html? &&
+      !req.path.start_with?("/rails/", "/api/", "/up")
+  end
 end

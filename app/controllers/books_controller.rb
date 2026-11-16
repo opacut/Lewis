@@ -1,5 +1,5 @@
 class BooksController < ApplicationController
-  before_action :set_book, only: %i[ show edit update destroy ]
+  before_action :set_book, only: %i[ show update destroy ]
 
   # GET /books or /books.json
   def index
@@ -20,7 +20,6 @@ class BooksController < ApplicationController
 
     if params[:tags].present?
       selected_tags = Array(params[:tags]).flat_map { |value| value.split(",") }.reject(&:blank?).uniq
-
       @books = @books.with_tags(selected_tags) if selected_tags.any?
     end
 
@@ -39,15 +38,20 @@ class BooksController < ApplicationController
 
   # GET /books/1 or /books/1.json
   def show
+    respond_to do |format|
+      format.html { render "books/index" }
+      format.json
+    end
   end
 
   # GET /books/new
   def new
-    @book = Book.new
+    render "books/index"
   end
 
   # GET /books/1/edit
   def edit
+    render "books/index"
   end
 
   # POST /books or /books.json
@@ -60,7 +64,7 @@ class BooksController < ApplicationController
         format.json { render :show, status: :created, location: @book }
       else
         format.html { render :new, status: :unprocessable_content }
-        format.json { render json: @book.errors, status: :unprocessable_content }
+        format.json { render json: { errors: @book.errors }, status: :unprocessable_content }
       end
     end
   end
@@ -73,7 +77,7 @@ class BooksController < ApplicationController
         format.json { render :show, status: :ok, location: @book }
       else
         format.html { render :edit, status: :unprocessable_content }
-        format.json { render json: @book.errors, status: :unprocessable_content }
+        format.json { render json: { errors: @book.errors }, status: :unprocessable_content }
       end
     end
   end
@@ -91,7 +95,10 @@ class BooksController < ApplicationController
   # POST /books/scan
   def scan
     if params[:photo].blank?
-      redirect_to new_book_path, alert: "Upload photo"
+      respond_to do |format|
+        format.html { redirect_to new_book_path, alert: "Upload photo" }
+        format.json { render json: { error: "Upload photo" }, status: :unprocessable_content }
+      end
       return
     end
 
@@ -104,24 +111,38 @@ class BooksController < ApplicationController
         image: params[:photo]
       )
 
-      if @book.save
-        redirect_to @book, notice: "Book created!"
-      else
-        redirect_to new_book_path, alert: @book.errors.full_messages.join(", ")
+      respond_to do |format|
+        if @book.save
+          format.html { redirect_to @book, notice: "Book created!" }
+          format.json { render :show, status: :created, location: @book }
+        else
+          format.html { redirect_to new_book_path, alert: @book.errors.full_messages.join(", ") }
+          format.json { render json: { errors: @book.errors }, status: :unprocessable_content }
+        end
       end
     else
-      redirect_to new_book_path, alert: "Could not read book info"
+      respond_to do |format|
+        format.html { redirect_to new_book_path, alert: "Could not read book info" }
+        format.json { render json: { error: "Could not read book info" }, status: :unprocessable_content }
+      end
     end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_book
-      @book = Book.find(params.expect(:id))
+
+  def set_book
+    @book = Book.find(params.expect(:id))
+  end
+
+  def book_params
+    permitted = params.require(:book).permit(:title, :author, :description, :location, :image, tag_names: [])
+    permitted[:tag_names] ||= params[:tag_names] if params[:tag_names].is_a?(Array)
+
+    # Ignore stringified JS::Object from JSON payloads; real file uploads come via FormData
+    if permitted[:image].is_a?(String)
+      permitted.delete(:image)
     end
 
-    # Only allow a list of trusted parameters through.
-    def book_params
-      params.require(:book).permit(:title, :author, :description, :location, :image, tag_names: [])
-    end
+    permitted
+  end
 end
