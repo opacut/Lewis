@@ -14,6 +14,15 @@
   display: inline-block;
 }
 
+summary::marker {
+  content: "";
+}
+
+summary {
+  font-size: x-large;
+  cursor: default;
+}
+
 .dropdown-menu {
   position: absolute;
   top: 100%;

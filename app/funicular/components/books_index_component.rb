@@ -18,7 +18,7 @@ class BooksIndexComponent < ApplicationComponent
       selected_tags: [],
       sort: "title",
       direction: "asc",
-      table_mode: true
+      table_mode: false
     }
   end
 
@@ -269,7 +269,15 @@ class BooksIndexComponent < ApplicationComponent
 
   def render_books_cards_view
     div(id: "books") do
-      p { "Cards view under construction" }
+      if state[:loading]
+        p { "Loading books..." }
+      else
+        div(class: "books-cards") do
+          filtered_and_sorted_books.each do |book|
+            component(::BookCardComponent, book:book, on_destroy: method(:handle_destroy))
+          end
+        end
+      end
     end
   end
 

@@ -41,7 +41,7 @@ class BookRowComponent < ApplicationComponent
 
       td do
         details(class: 'dropdown') do
-          summary(class: 'btn btn-primary') { "Actions" }
+          summary(class: 'btn btn-primary') { "≡" }
           ul(class: 'dropdown-menu') do
             li do 
               button(class: 'dropdown-btn', onclick: -> {Funicular.router.navigate(routes.book_path(book.id))}) { "Show" }
